@@ -1,0 +1,5 @@
+.env
+traefik.toml
+traefik.dev.toml
+traefik.log
+*.swp

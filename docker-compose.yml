@@ -1,0 +1,180 @@
+---
+version: '2.1'
+services:
+  xc-minio:
+    image: minio/minio
+    restart: unless-stopped
+    command: server /export
+    environment:
+      # minimal 5 chars
+      MINIO_ACCESS_KEY: xenocanto
+      # minimal 8 chars
+      MINIO_SECRET_KEY: ${XENOCANTO_S3_PASS:-xenocanto}
+      MINIO_DOMAIN: s3.xenocanto.ppdb.naturalis.nl
+    volumes:
+    - "${MINIO_XENOCANTO_DATA_DIR:-./minio-xenocanto}:/export"
+    networks:
+      - default
+      - web
+    logging:
+      driver: "json-file"
+      options:
+        max-size: '10m'
+        max-file: '5'
+    labels:
+      - "traefik.backend=xc-minio"
+      - "traefik.enable=true"
+      - "traefik.port=9000"
+      - "${MINIO_XC_URL:-traefik.frontend.rule=Host:s3.xenocanto.ppdb.naturalis.nl,multimedia.s3.xenocanto.ppdb.naturalis.nl,specimen.s3.xenocanto.ppdb.naturalis.nl,reports.s3.xenocanto.ppdb.naturalis.nl}"
+  wrnnl-minio:
+    image: minio/minio
+    restart: unless-stopped
+    command: server /export
+    environment:
+      # minimal 5 chars
+      MINIO_ACCESS_KEY: waarneming
+      # minimal 8 chars
+      MINIO_SECRET_KEY: ${WAARNEMING_S3_PASS:-waarneming}
+      MINIO_DOMAIN: s3.waarneming.ppdb.naturalis.nl
+    volumes:
+    - "${MINIO_WAARNEMING_DATA_DIR:-./minio-waarneming}:/export"
+    networks:
+      - default
+      - web
+    logging:
+      driver: "json-file"
+      options:
+        max-size: '10m'
+        max-file: '5'
+    labels:
+      - "traefik.backend=waarneming-minio"
+      - "traefik.enable=true"
+      - "traefik.port=9000"
+      - "${MINIO_WRNNL_URL:-traefik.frontend.rule=Host:s3.waarneming.ppdb.naturalis.nl,multimedia.s3.waarneming.ppdb.naturalis.nl,specimen.s3.waarneming.ppdb.naturalis.nl,reports.s3.waarneming.ppdb.naturalis.nl}"
+  naturalis-minio:
+    image: minio/minio
+    restart: unless-stopped
+    command: server /export
+    environment:
+      # minimal 5 chars
+      MINIO_ACCESS_KEY: naturalis
+      # minimal 8 chars
+      MINIO_SECRET_KEY: ${NATURALIS_S3_PASS:-naturalis}
+      MINIO_DOMAIN: s3.naturalis.ppdb.naturalis.nl
+    volumes:
+    - "${MINIO_NATURALIS_DATA_DIR:-./minio-naturalis}:/export"
+    networks:
+      - default
+      - web
+    logging:
+      driver: "json-file"
+      options:
+        max-size: '10m'
+        max-file: '5'
+    labels:
+      - "traefik.backend=naturalis-minio"
+      - "traefik.enable=true"
+      - "traefik.port=9000"
+      - "${MINIO_NATURALIS_URL:-traefik.frontend.rule=Host:s3.naturalis.ppdb.naturalis.nl,multimedia.s3.naturalis.ppdb.naturalis.nl,specimen.s3.naturalis.ppdb.naturalis.nl,reports.s3.naturalis.ppdb.naturalis.nl}"
+#  gui:
+#    image: naturalis/nba-json-validator-gui:latest
+#    networks:
+#      - default
+#      - web
+#    ports:
+#      - 5678:80
+#    logging:
+#      driver: "json-file"
+#      options:
+#        max-size: '10m'
+#        max-file: '5'
+#    labels:
+#      - "traefik.backend=validator-gui"
+#      - "traefik.enable=true"
+#      - "traefik.port=80"
+#      - "${MINIO_WRNNL_URL:-traefik.frontend.rule=Host:validator.ppdb.naturalis.nl}"
+  traefik:
+    image: traefik:1.7.4
+    container_name: traefik
+    restart: unless-stopped
+    ports:
+      - 80:80
+      - 443:443
+      - 8080:8080
+    networks:
+      - default
+      - web
+    logging:
+      driver: "json-file"
+      options:
+        max-size: '10m'
+        max-file: '5'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik.log:/var/log/traefik
+      - ${TRAEFIK_TOML_FILE:-./traefik.dev.toml}:/traefik.toml
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.4.2
+    environment:
+      - "discovery.type=single-node"
+    volumes:
+      - "${ELASTICSEARCH_DATA:-./elasticsearch-data}:/usr/share/elasticsearch/data"
+    ports:
+      - "127.0.0.1:9200:9200"
+  grafana:
+    image: grafana/grafana
+    volumes:
+      - "${GRAFANA_DATA:-./grafana-data}:/var/lib/grafana"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASS:-secret}
+    networks:
+      - web
+      - default
+    labels:
+      - "traefik.backend=ppdb-grafana"
+      - "traefik.docker.network=web"
+      - "traefik.enable=true"
+      - "traefik.port=3000"
+      - ${GRAFANA_URL_CONFIG:-traefik.frontend.rule=Host:reports.ppdb.naturalis.nl}
+  postgres:
+    image: postgres:10.5
+    ports:
+      - "5432:5432"
+    volumes:
+      - "${PG_DATA:-./pgdata}:/var/lib/postgresql/data"
+      - ./postgres/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      - ./postgres/conf.d:/conf.d
+      - "${SHARED_DATA:-./shared-data}:/shared-data" # python data share
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - REPLICATION_USER=${REPLICATION_USER}
+      - REPLICATION_PASSWORD=${REPLICATION_PASSWORD}
+    networks:
+      - default
+  jupyter:
+    #image: jupyter/minimal-notebook:latest
+    image: naturalis/ppbd:v0.0.1
+    volumes:
+      - "${SHARED_DATA:-./shared-data}:/shared-data"
+      - "${PYTHON_CODE:-./python-code}:/home/jovyan/src"
+      - "${NOTEBOOKS:-./notebooks}:/home/jovyan/notebooks"
+    labels:
+      - "traefik.backend=ppdb-jupyter"
+      - "traefik.docker.network=web"
+      - "traefik.enable=true"
+      - "traefik.port=8888"
+      - ${JUPYTER_URL_CONFIG:-traefik.frontend.rule=Host:jupyter.ppdb.naturalis.nl}
+    environment:
+      DATABASE_URL: "postgres://${POSTGRES_USER}@${POSTGRES_PASSWORD}/${POSTGRES_DB}"
+      DATABASE_USER: ${POSTGRES_USER}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
+      DATABASE_DB: ${POSTGRES_DB}
+      DATABASE_HOST: ${POSTGRES_HOST}
+    networks:
+      - web
+      - default
+ 
+networks:
+  web:
+    external: true

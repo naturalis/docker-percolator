@@ -138,6 +138,11 @@ services:
       - "traefik.enable=true"
       - "traefik.port=3000"
       - ${GRAFANA_URL_CONFIG:-traefik.frontend.rule=Host:reports.ppdb.naturalis.nl}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: '10m'
+        max-file: '5'
   postgres:
     image: postgres:10.5
     ports:
@@ -152,6 +157,11 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - REPLICATION_USER=${REPLICATION_USER}
       - REPLICATION_PASSWORD=${REPLICATION_PASSWORD}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: '10m'
+        max-file: '5'
     networks:
       - default
   jupyter:
@@ -173,6 +183,11 @@ services:
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
       DATABASE_DB: ${POSTGRES_DB}
       DATABASE_HOST: ${POSTGRES_HOST}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: '10m'
+        max-file: '5'
     networks:
       - web
       - default

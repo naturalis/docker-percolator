@@ -114,6 +114,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik.log:/var/log/traefik
+      - "/etc/letsencrypt:/etc/letsencrypt"
       - ${TRAEFIK_TOML_FILE:-./traefik.dev.toml}:/traefik.toml
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.4.2
@@ -166,7 +167,7 @@ services:
       - default
   jupyter:
     #image: jupyter/minimal-notebook:latest
-    image: naturalis/ppbd:v0.0.1
+    image: naturalis/ppdb:v0.0.1
     volumes:
       - "${SHARED_DATA:-./shared-data}:/shared-data"
       - "${PYTHON_CODE:-./python-code}:/home/jovyan/src"

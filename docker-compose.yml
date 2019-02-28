@@ -122,6 +122,7 @@ services:
       - "discovery.type=single-node"
     volumes:
       - "${ELASTICSEARCH_DATA:-./elasticsearch-data}:/usr/share/elasticsearch/data"
+      - "${ELASTICSEARCH_BACKUP:-./elasticsearch-backup}:/backup"
     ports:
       - "127.0.0.1:9200:9200"
   grafana:

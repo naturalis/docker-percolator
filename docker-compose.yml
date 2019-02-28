@@ -34,7 +34,8 @@ services:
       # minimal 5 chars
       MINIO_ACCESS_KEY: waarneming
       # minimal 8 chars
-      MINIO_SECRET_KEY: ${WAARNEMING_S3_PASS:-waarneming}
+      # MINIO_SECRET_KEY: ${WAARNEMING_S3_PASS:-waarneming}
+      MINIO_SECRET_KEY: hatsjekiedee
       MINIO_DOMAIN: s3.waarneming.ppdb.naturalis.nl
     volumes:
     - "${MINIO_WAARNEMING_DATA_DIR:-./minio-waarneming}:/export"
@@ -59,7 +60,8 @@ services:
       # minimal 5 chars
       MINIO_ACCESS_KEY: naturalis
       # minimal 8 chars
-      MINIO_SECRET_KEY: ${NATURALIS_S3_PASS:-naturalis}
+      #MINIO_SECRET_KEY: ${NATURALIS_S3_PASS:-naturalis}
+      MINIO_SECRET_KEY: hatsjekiedee
       MINIO_DOMAIN: s3.naturalis.ppdb.naturalis.nl
     volumes:
     - "${MINIO_NATURALIS_DATA_DIR:-./minio-naturalis}:/export"

@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 USER $NB_USER
 COPY requirements.txt /tmp/
-RUN pip install --requirement /tmp/requirements.txt
+RUN pip install --requirement /tmp/requirements.txt -U
 RUN jupyter nbextensions_configurator enable --user
 RUN mkdir -p $(jupyter --data-dir)/nbextensions &&\
     cd $(jupyter --data-dir)/nbextensions && \

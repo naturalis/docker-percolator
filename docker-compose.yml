@@ -173,6 +173,7 @@ services:
       - "${SHARED_DATA:-./shared-data}:/shared-data"
       - "${PYTHON_CODE:-./python-code}:/home/jovyan/src"
       - "${NOTEBOOKS:-./notebooks}:/home/jovyan/notebooks"
+      - "${VALIDATOR_DATA:-./data}:/validator-data"
     labels:
       - "traefik.backend=ppdb-jupyter"
       - "traefik.docker.network=web"

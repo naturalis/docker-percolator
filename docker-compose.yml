@@ -7,7 +7,7 @@ services:
     command: server /export
     environment:
       # minimal 5 chars
-      MINIO_ACCESS_KEY: xenocanto
+      MINIO_ACCESS_KEY: ${XENOCANTO_S3_USER:-xenocanto}
       # minimal 8 chars
       MINIO_SECRET_KEY: ${XENOCANTO_S3_PASS:-xenocanto}
       MINIO_DOMAIN: s3.xenocanto.ppdb.naturalis.nl
@@ -32,10 +32,9 @@ services:
     command: server /export
     environment:
       # minimal 5 chars
-      MINIO_ACCESS_KEY: waarneming
+      MINIO_ACCESS_KEY: ${WAARNEMING_S3_USER:-waarneming}
       # minimal 8 chars
-      # MINIO_SECRET_KEY: ${WAARNEMING_S3_PASS:-waarneming}
-      MINIO_SECRET_KEY: hatsjekiedee
+      MINIO_SECRET_KEY: ${WAARNEMING_S3_PASS:-waarneming}
       MINIO_DOMAIN: s3.waarneming.ppdb.naturalis.nl
     volumes:
     - "${MINIO_WAARNEMING_DATA_DIR:-./minio-waarneming}:/export"
@@ -58,10 +57,9 @@ services:
     command: server /export
     environment:
       # minimal 5 chars
-      MINIO_ACCESS_KEY: naturalis
+      MINIO_ACCESS_KEY: ${NATURALIS_S3_USER:-naturalis}
       # minimal 8 chars
-      #MINIO_SECRET_KEY: ${NATURALIS_S3_PASS:-naturalis}
-      MINIO_SECRET_KEY: hatsjekiedee
+      MINIO_SECRET_KEY: ${NATURALIS_S3_PASS:-naturalis}
       MINIO_DOMAIN: s3.naturalis.ppdb.naturalis.nl
     volumes:
     - "${MINIO_NATURALIS_DATA_DIR:-./minio-naturalis}:/export"

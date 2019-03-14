@@ -184,6 +184,7 @@ services:
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
       DATABASE_DB: ${POSTGRES_DB}
       DATABASE_HOST: ${POSTGRES_HOST}
+      PERCOLATOR_CONFIG: ${PERCOLATOR_CONFIG}
     logging:
       driver: "json-file"
       options:
@@ -198,13 +199,13 @@ services:
       - "${NBA_JSON_SCHEMAS:-./nba_json_schemas}:/schemas"
       - "${NBA_JSON_CONFIG:-./nba_json_schemas_config}:/config"
       - "${VALIDATOR_DATA:-./data/validator}:/data"
-      - "${SHARED_DATA:-./data/shared-data}:/shared"
+      - "${SHARED_DATA:-./data/shared-data}:/shared-data"
     environment:
       repository: /data/datasets
       outdir: /data/output
       logserver: http://elasticsearch:9200/
-      jobfolder: /shared/jobs/
-      datafolder: /shared/incoming/
+      jobfolder: /shared-data/percolator/jobs/
+      datafolder: /shared-data/percolator/incoming/
       outfile_lines: 0
       tmp_path: /data/temporary/
     logging:

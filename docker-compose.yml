@@ -216,6 +216,27 @@ services:
     networks:
       - web
       - default
+  percolator:
+    #image: jupyter/minimal-notebook:latest
+    image: naturalis/percolator:latest
+    volumes:
+      - "${SHARED_DATA:-./shared-data}:/shared-data"
+      - "${MINIO_WAARNEMING_DATA_DIR:-./data}:/infuser-data"
+    environment:
+      DATABASE_URL: "postgres://${POSTGRES_USER}@${POSTGRES_PASSWORD}/${POSTGRES_DB}"
+      DATABASE_USER: ${POSTGRES_USER}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
+      DATABASE_DB: ${POSTGRES_DB}
+      DATABASE_HOST: ${POSTGRES_HOST}
+      PERCOLATOR_CONFIG: ${PERCOLATOR_CONFIG}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: '10m'
+        max-file: '5'
+    networks:
+      - web
+      - default
 
 networks:
   web:

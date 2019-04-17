@@ -3,8 +3,8 @@ psycopg2-binary
 pony==0.7.3
 pyyaml
 diskcache==3.1.1
-pyyaml
 elasticsearch
+requests
 python-dateutil
 pytest
 git+https://github.com/naturalis/ppdb_nba.git#egg=ppdb_nba

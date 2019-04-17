@@ -4,6 +4,7 @@ pony==0.7.3
 pyyaml>=4.2b1
 diskcache==3.1.1
 elasticsearch
+requests
 python-dateutil
 pytest
 git+https://github.com/naturalis/ppdb_nba.git#egg=ppdb_nba

@@ -8,9 +8,9 @@ RUN apk update \
     apk add \
     py3-dateutil \
     py3-yaml \
+    postgresql-dev \
     && apk add --virtual buildpsyco musl-dev \
     python3-dev \
-    postgresql-dev \
     libffi-dev \
     gcc \
     git \
@@ -19,3 +19,5 @@ RUN apk update \
     && apk del buildpsyco
 ADD . /usr/src
 WORKDIR /usr/src
+
+CMD ["ppdb_nba"]

@@ -2,6 +2,7 @@
 version: '2.1'
 services:
   xc-minio:
+    # Dit is de minio image voor het aanleveren van xeno-canto bronnen
     image: minio/minio
     restart: unless-stopped
     command: server /export
@@ -27,6 +28,7 @@ services:
       - "traefik.port=9000"
       - "${MINIO_XC_URL:-traefik.frontend.rule=Host:s3.xenocanto.ppdb.naturalis.nl,multimedia.s3.xenocanto.ppdb.naturalis.nl,specimen.s3.xenocanto.ppdb.naturalis.nl,reports.s3.xenocanto.ppdb.naturalis.nl}"
   wrnnl-minio:
+    # Dit is de minio image voor het aanleveren van waarneming bronnen
     image: minio/minio
     restart: unless-stopped
     command: server /export
@@ -52,6 +54,7 @@ services:
       - "traefik.port=9000"
       - "${MINIO_WRNNL_URL:-traefik.frontend.rule=Host:s3.waarneming.ppdb.naturalis.nl,multimedia.s3.waarneming.ppdb.naturalis.nl,specimen.s3.waarneming.ppdb.naturalis.nl,reports.s3.waarneming.ppdb.naturalis.nl}"
   naturalis-minio:
+    # Dit is de minio image voor het aanleveren van naturalis bronnen
     image: minio/minio
     restart: unless-stopped
     command: server /export
@@ -76,24 +79,8 @@ services:
       - "traefik.enable=true"
       - "traefik.port=9000"
       - "${MINIO_NATURALIS_URL:-traefik.frontend.rule=Host:s3.naturalis.ppdb.naturalis.nl,multimedia.s3.naturalis.ppdb.naturalis.nl,specimen.s3.naturalis.ppdb.naturalis.nl,reports.s3.naturalis.ppdb.naturalis.nl}"
-#  gui:
-#    image: naturalis/nba-json-validator-gui:latest
-#    networks:
-#      - default
-#      - web
-#    ports:
-#      - 5678:80
-#    logging:
-#      driver: "json-file"
-#      options:
-#        max-size: '10m'
-#        max-file: '5'
-#    labels:
-#      - "traefik.backend=validator-gui"
-#      - "traefik.enable=true"
-#      - "traefik.port=80"
-#      - "${MINIO_WRNNL_URL:-traefik.frontend.rule=Host:validator.ppdb.naturalis.nl}"
   traefik:
+    # Traefik verzorgt het ssl certificate en de communicatie via de load balancer
     image: traefik:1.7.4
     container_name: traefik
     restart: unless-stopped
@@ -115,6 +102,7 @@ services:
       - "/etc/letsencrypt:/etc/letsencrypt"
       - ${TRAEFIK_TOML_FILE:-./traefik.dev.toml}:/traefik.toml
   elasticsearch:
+    # Dit is de elastic logging server
     image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.4.2
     environment:
       - "discovery.type=single-node"
@@ -124,6 +112,7 @@ services:
     ports:
       - "127.0.0.1:9200:9200"
   grafana:
+    # Dit is het grafana dashboard dat de logging van het hele proces kan weergeven
     image: grafana/grafana
     volumes:
       - "${GRAFANA_DATA:-./grafana-data}:/var/lib/grafana"
@@ -144,6 +133,7 @@ services:
         max-size: '10m'
         max-file: '5'
   postgres:
+    # Dit is de postgres database die wordt gebruikt door de percolator instance
     image: postgres:10.5
     ports:
       - "5432:5432"
@@ -164,36 +154,8 @@ services:
         max-file: '5'
     networks:
       - default
-  jupyter:
-    #image: jupyter/minimal-notebook:latest
-    image: naturalis/ppdb:v0.0.1
-    volumes:
-      - "${SHARED_DATA:-./shared-data}:/shared-data"
-      - "${PYTHON_CODE:-./python-code}:/home/jovyan/src"
-      - "${NOTEBOOKS:-./notebooks}:/home/jovyan/notebooks"
-      - "${VALIDATOR_DATA:-./data}:/validator-data"
-    labels:
-      - "traefik.backend=ppdb-jupyter"
-      - "traefik.docker.network=web"
-      - "traefik.enable=true"
-      - "traefik.port=8888"
-      - ${JUPYTER_URL_CONFIG:-traefik.frontend.rule=Host:jupyter.ppdb.naturalis.nl}
-    environment:
-      DATABASE_URL: "postgres://${POSTGRES_USER}@${POSTGRES_PASSWORD}/${POSTGRES_DB}"
-      DATABASE_USER: ${POSTGRES_USER}
-      DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
-      DATABASE_DB: ${POSTGRES_DB}
-      DATABASE_HOST: ${POSTGRES_HOST}
-      PERCOLATOR_CONFIG: ${PERCOLATOR_CONFIG}
-    logging:
-      driver: "json-file"
-      options:
-        max-size: '10m'
-        max-file: '5'
-    networks:
-      - web
-      - default
   validator:
+    # Dit is de validator instance van Maarten
     image: naturalis/nba-validator:latest
     volumes:
       - "${NBA_JSON_SCHEMAS:-./nba_json_schemas}:/schemas"
@@ -217,7 +179,7 @@ services:
       - web
       - default
   percolator:
-    #image: jupyter/minimal-notebook:latest
+    # Dit is de percolator instance van Joep
     image: naturalis/percolator:latest
     volumes:
       - "${SHARED_DATA:-./shared-data}:/shared-data"
@@ -238,12 +200,63 @@ services:
     networks:
       - default
   nba-loader:
+    # Dit is de infuser van Tom
     image: naturalis/nba-loader:latest
     volumes:
      - /opt/ppdb/loader-config:/home/app/config
      - /data/shared-data/infuser:/data
     networks:
       - default
+########
+# Onderstaand is de dev omgeving gebruikt om tijdens een vroeg moment te experimenteren
+#
+# jupyter:
+#   image: naturalis/ppdb:v0.0.1
+#   volumes:
+#     - "${SHARED_DATA:-./shared-data}:/shared-data"
+#     - "${PYTHON_CODE:-./python-code}:/home/jovyan/src"
+#     - "${NOTEBOOKS:-./notebooks}:/home/jovyan/notebooks"
+#     - "${VALIDATOR_DATA:-./data}:/validator-data"
+#   labels:
+#     - "traefik.backend=ppdb-jupyter"
+#     - "traefik.docker.network=web"
+#     - "traefik.enable=true"
+#     - "traefik.port=8888"
+#     - ${JUPYTER_URL_CONFIG:-traefik.frontend.rule=Host:jupyter.ppdb.naturalis.nl}
+#   environment:
+#     DATABASE_URL: "postgres://${POSTGRES_USER}@${POSTGRES_PASSWORD}/${POSTGRES_DB}"
+#     DATABASE_USER: ${POSTGRES_USER}
+#     DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
+#     DATABASE_DB: ${POSTGRES_DB}
+#     DATABASE_HOST: ${POSTGRES_HOST}
+#     PERCOLATOR_CONFIG: ${PERCOLATOR_CONFIG}
+#   logging:
+#     driver: "json-file"
+#     options:
+#       max-size: '10m'
+#       max-file: '5'
+#   networks:
+#     - web
+#     - default
+#
+#
+#  gui:
+#    image: naturalis/nba-json-validator-gui:latest
+#    networks:
+#      - default
+#      - web
+#    ports:
+#      - 5678:80
+#    logging:
+#      driver: "json-file"
+#      options:
+#        max-size: '10m'
+#        max-file: '5'
+#    labels:
+#      - "traefik.backend=validator-gui"
+#      - "traefik.enable=true"
+#      - "traefik.port=80"
+#      - "${MINIO_WRNNL_URL:-traefik.frontend.rule=Host:validator.ppdb.naturalis.nl}"
 
 networks:
   web:

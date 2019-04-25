@@ -165,7 +165,7 @@ services:
     environment:
       repository: /data/datasets
       outdir: /data/output
-      logserver: http://elasticsearch:9200/
+      logserver: http://${LOGGING_HOST}:${LOGGING_PORT:-9200}/
       jobfolder: /shared-data/percolator/jobs/
       datafolder: /shared-data/percolator/incoming/
       outfile_lines: 0
@@ -190,8 +190,11 @@ services:
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
       DATABASE_DB: ${POSTGRES_DB}
       DATABASE_HOST: ${POSTGRES_HOST}
-      PERCOLATOR_CONFIG: ${PERCOLATOR_CONFIG}
+      PERCOLATOR_CONFIG: ${PERCOLATOR_CONFIG:-./config.yml}
       SLACK_WEBHOOK: ${SLACK_WEBHOOK}
+      SLACK_ENABLED: ${SLACK_ENABLED:-0}
+      LOGGING_HOST: ${LOGGING_HOST:-9200}
+      LOGGING_PORT: ${LOGGING_PORT:-elasticsearch}
     logging:
       driver: "json-file"
       options:
@@ -200,11 +203,24 @@ services:
     networks:
       - default
   nba-loader:
-    # Dit is de infuser van Tom
+    # Dit is de infuser/importer van Tom
     image: naturalis/nba-loader:latest
     volumes:
-     - /opt/ppdb/loader-config:/home/app/config
-     - /data/shared-data/infuser:/data
+      - /opt/ppdb/loader-config:/home/app/config
+      - /data/shared-data/infuser:/data
+    environment:
+      NBA_HOST: ${NBA_HOST:-127.0.0.1}
+      NBA_PORT: ${NBA_PORT:-9200}
+      NBA_SCHEME: ${NBA_SCHEME:-http}
+      LOGGING_HOST: ${LOGGING_HOST}
+      LOGGING_PORT: ${LOGGING_PORT:-9200}
+      LOGGING_SCHEME: ${LOGGING_SCHEME:-http}
+      INFUSER_BATCHSIZE: ${INFUSER_BATCHSIZE:-500}
+      INFUSER_JOBSPATH: ${INFUSER_JOBSPATH}
+      INFUSER_INCOMINGPATH: ${INFUSER_INCOMINGPATH}
+      INFUSER_ARCHIVEPATH: ${INFUSER_ARCHIVEPATH}
+      SLACK_WEBHOOK: ${SLACK_WEBHOOK}
+      SLACK_ENABLED: ${SLACK_ENABLED:-0}
     networks:
       - default
 ########

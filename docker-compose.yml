@@ -181,6 +181,10 @@ services:
       options:
         max-size: '10m'
         max-file: '5'
+    deploy:
+      resources:
+        limits:
+          memory: 2G
     networks:
       - web
       - default

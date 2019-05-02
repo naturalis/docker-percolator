@@ -116,8 +116,6 @@ services:
     image: grafana/grafana
     volumes:
       - "${GRAFANA_DATA:-./grafana-data}:/var/lib/grafana"
-    environment:
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASS:-secret}
     networks:
       - web
       - default
@@ -127,6 +125,12 @@ services:
       - "traefik.enable=true"
       - "traefik.port=3000"
       - ${GRAFANA_URL_CONFIG:-traefik.frontend.rule=Host:reports.ppdb.naturalis.nl}
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASS:-secret}
+      - GF_SMTP_ENABLED=true
+      - GF_SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
+      - GF_SMTP_USER=${SMTP_USER:-noreply@naturalis.nl}
+      - GF_SMTP_PASSWORD=${SMTP_PASSWORD}
     logging:
       driver: "json-file"
       options:
@@ -156,7 +160,7 @@ services:
       - default
   validator:
     # Dit is de validator instance van Maarten
-    image: naturalis/nba-validator:latest
+    image: naturalis/nba-validator:v1.0
     volumes:
       - "${NBA_JSON_SCHEMAS:-./nba_json_schemas}:/schemas"
       - "${NBA_JSON_CONFIG:-./nba_json_schemas_config}:/config"
@@ -170,6 +174,8 @@ services:
       datafolder: /shared-data/percolator/incoming/
       outfile_lines: 0
       tmp_path: /data/temporary/
+      SLACK_WEBHOOK: ${SLACK_WEBHOOK}
+      SLACK_ENABLED: ${SLACK_ENABLED:-0}
     logging:
       driver: "json-file"
       options:
@@ -193,8 +199,7 @@ services:
       PERCOLATOR_CONFIG: ${PERCOLATOR_CONFIG:-./config.yml}
       SLACK_WEBHOOK: ${SLACK_WEBHOOK}
       SLACK_ENABLED: ${SLACK_ENABLED:-0}
-      LOGGING_HOST: ${LOGGING_HOST:-9200}
-      LOGGING_PORT: ${LOGGING_PORT:-elasticsearch}
+      LOGGING_HOST: ${LOGGING_SCHEME}://${LOGGING_HOST:-elasticsearch}:${LOGGING_PORT:-9200}/
     logging:
       driver: "json-file"
       options:

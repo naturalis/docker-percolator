@@ -27,6 +27,8 @@ services:
       - "traefik.enable=true"
       - "traefik.port=9000"
       - "${MINIO_XC_URL:-traefik.frontend.rule=Host:s3.xenocanto.ppdb.naturalis.nl,multimedia.s3.xenocanto.ppdb.naturalis.nl,specimen.s3.xenocanto.ppdb.naturalis.nl,reports.s3.xenocanto.ppdb.naturalis.nl}"
+
+  
   wrnnl-minio:
     # Dit is de minio image voor het aanleveren van waarneming bronnen
     image: minio/minio
@@ -53,6 +55,8 @@ services:
       - "traefik.enable=true"
       - "traefik.port=9000"
       - "${MINIO_WRNNL_URL:-traefik.frontend.rule=Host:s3.waarneming.ppdb.naturalis.nl,multimedia.s3.waarneming.ppdb.naturalis.nl,specimen.s3.waarneming.ppdb.naturalis.nl,reports.s3.waarneming.ppdb.naturalis.nl}"
+
+  
   naturalis-minio:
     # Dit is de minio image voor het aanleveren van naturalis bronnen
     image: minio/minio
@@ -79,6 +83,8 @@ services:
       - "traefik.enable=true"
       - "traefik.port=9000"
       - "${MINIO_NATURALIS_URL:-traefik.frontend.rule=Host:s3.naturalis.ppdb.naturalis.nl,multimedia.s3.naturalis.ppdb.naturalis.nl,specimen.s3.naturalis.ppdb.naturalis.nl,reports.s3.naturalis.ppdb.naturalis.nl}"
+
+  
   traefik:
     # Traefik verzorgt het ssl certificate en de communicatie via de load balancer
     image: traefik:1.7.4
@@ -101,6 +107,8 @@ services:
       - ./traefik.log:/var/log/traefik
       - "/etc/letsencrypt:/etc/letsencrypt"
       - ${TRAEFIK_TOML_FILE:-./traefik.dev.toml}:/traefik.toml
+
+  
   elasticsearch:
     # Dit is de elastic logging server
     image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.4.2
@@ -111,13 +119,13 @@ services:
       - "${ELASTICSEARCH_BACKUP:-./elasticsearch-backup}:/backup"
     ports:
       - "127.0.0.1:9200:9200"
+
+
   grafana:
     # Dit is het grafana dashboard dat de logging van het hele proces kan weergeven
     image: grafana/grafana
     volumes:
       - "${GRAFANA_DATA:-./grafana-data}:/var/lib/grafana"
-    environment:
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASS:-secret}
     networks:
       - web
       - default
@@ -127,11 +135,19 @@ services:
       - "traefik.enable=true"
       - "traefik.port=3000"
       - ${GRAFANA_URL_CONFIG:-traefik.frontend.rule=Host:reports.ppdb.naturalis.nl}
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASS:-secret}
+      - GF_SMTP_ENABLED=true
+      - GF_SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
+      - GF_SMTP_USER=${SMTP_USER:-noreply@naturalis.nl}
+      - GF_SMTP_PASSWORD=${SMTP_PASSWORD}
     logging:
       driver: "json-file"
       options:
         max-size: '10m'
         max-file: '5'
+
+
   postgres:
     # Dit is de postgres database die wordt gebruikt door de percolator instance
     image: postgres:10.5
@@ -154,12 +170,14 @@ services:
         max-file: '5'
     networks:
       - default
+
+
   validator:
     # Dit is de validator instance van Maarten
     image: naturalis/nba-validator:v1.0
     volumes:
       - "${NBA_JSON_SCHEMAS:-./nba_json_schemas}:/schemas"
-      - "${NBA_JSON_CONFIG:-./nba_validator_config}:/config"
+      - "${NBA_VALIDATOR_CONFIG:-./data/nba_validator_config}:/config"
       - "${VALIDATOR_DATA:-./data/validator}:/data"
       - "${SHARED_DATA:-./data/shared-data}:/shared-data"
     environment:
@@ -170,6 +188,8 @@ services:
       datafolder: /shared-data/percolator/incoming/
       outfile_lines: 0
       tmp_path: /data/temporary/
+      SLACK_WEBHOOK: ${SLACK_WEBHOOK}
+      SLACK_ENABLED: ${SLACK_ENABLED:-0}
     logging:
       driver: "json-file"
       options:
@@ -178,8 +198,10 @@ services:
     networks:
       - web
       - default
+
+
+  # Dit is de percolator instance van Joep
   percolator:
-    # Dit is de percolator instance van Joep
     image: naturalis/nba-percolator:latest
     volumes:
       - "${SHARED_DATA:-./shared-data}:/shared-data"
@@ -193,8 +215,7 @@ services:
       PERCOLATOR_CONFIG: ${PERCOLATOR_CONFIG:-./config.yml}
       SLACK_WEBHOOK: ${SLACK_WEBHOOK}
       SLACK_ENABLED: ${SLACK_ENABLED:-0}
-      LOGGING_HOST: ${LOGGING_HOST:-9200}
-      LOGGING_PORT: ${LOGGING_PORT:-elasticsearch}
+      LOGGING_HOST: ${LOGGING_SCHEME}://${LOGGING_HOST:-elasticsearch}:${LOGGING_PORT:-9200}/
     logging:
       driver: "json-file"
       options:
@@ -202,9 +223,10 @@ services:
         max-file: '5'
     networks:
       - default
-  nba-loader:
-    # Dit is de infuser/importer van Tom
-    image: naturalis/nba-loader:latest
+
+
+  infuser:
+    image: registry.gitlab.com/naturalis/sd/nba_infuser
     volumes:
       - /opt/ppdb/loader-config:/home/app/config
       - /data/shared-data/infuser:/data
@@ -223,6 +245,7 @@ services:
       SLACK_ENABLED: ${SLACK_ENABLED:-0}
     networks:
       - default
+
 ########
 # Onderstaand is de dev omgeving gebruikt om tijdens een vroeg moment te experimenteren
 #
@@ -277,3 +300,4 @@ services:
 networks:
   web:
     external: true
+

@@ -7,4 +7,4 @@ elasticsearch
 requests
 python-dateutil
 pytest
-git+https://github.com/naturalis/ppdb_nba.git#egg=ppdb_nba
+git+https://github.com/naturalis/nba_percolator.git#egg=nba_percolator

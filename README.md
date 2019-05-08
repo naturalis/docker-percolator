@@ -1,21 +1,22 @@
-# docker-percolator
+# NBA colander
 
-This is the docker-compose setup needed for the nba preprocessor script (percolator).
-The setup was created by former Naturalis employee Atze and consists of:
+This is the docker-compose setup needed for the nba preprocessor system
+The setup was created by former Naturalis employee Atze and Joep Vermaat and 
+consists of:
 
- - minio instance for xeno canto
- - minio instance for waarneming
- - minio instance for naturalis
+ - validator (php environment for the validation)
+ - infuser (java environment for loader)
+ - percolator (python environment for the percolator script)
+
+ The supporting infra structure needed consitst of:
+
+ - minio instance for xeno canto data
+ - minio instance for waarneming data
+ - minio instance for naturalis data
  - traefik
  - elasticsearch (for logging)
  - grafana (for visualising the logging output)
  - postgres (needed for fast filtering of data)
- - jupyter (python environment for the percolator script)
-
-The percolator script is installed while creating the jupyter docker instance. It does
-this by installing the pip requirements in `/ppdb-nba`, specifically:
-
- [git+https://github.com/naturalis/ppdb_nba.git#egg=ppdb_nba](https://github.com/naturalis/ppdb_nba)
 
 All the other requirements needed by this script are installed too. In the `.env` you
 can find where the data is put:
@@ -35,4 +36,6 @@ NOTEBOOKS=/data/notebooks
 The `SHARED_DATA` is shared between the docker instances through the shared 
 path `/shared-data`.
 
-Please read the [readme of ppdb_nba](https://github.com/naturalis/ppdb_nba/blob/master/README.md) on how to use the percolator script.
+Please read the 
+[readme of nba_percolator](https://github.com/naturalis/nba_percolator/blob/master/README.md) 
+on how to use the percolator script.

@@ -27,6 +27,8 @@ services:
       - "traefik.enable=true"
       - "traefik.port=9000"
       - "${MINIO_XC_URL:-traefik.frontend.rule=Host:s3.xenocanto.ppdb.naturalis.nl,multimedia.s3.xenocanto.ppdb.naturalis.nl,specimen.s3.xenocanto.ppdb.naturalis.nl,reports.s3.xenocanto.ppdb.naturalis.nl}"
+
+  
   wrnnl-minio:
     # Dit is de minio image voor het aanleveren van waarneming bronnen
     image: minio/minio
@@ -53,6 +55,8 @@ services:
       - "traefik.enable=true"
       - "traefik.port=9000"
       - "${MINIO_WRNNL_URL:-traefik.frontend.rule=Host:s3.waarneming.ppdb.naturalis.nl,multimedia.s3.waarneming.ppdb.naturalis.nl,specimen.s3.waarneming.ppdb.naturalis.nl,reports.s3.waarneming.ppdb.naturalis.nl}"
+
+  
   naturalis-minio:
     # Dit is de minio image voor het aanleveren van naturalis bronnen
     image: minio/minio
@@ -79,6 +83,8 @@ services:
       - "traefik.enable=true"
       - "traefik.port=9000"
       - "${MINIO_NATURALIS_URL:-traefik.frontend.rule=Host:s3.naturalis.ppdb.naturalis.nl,multimedia.s3.naturalis.ppdb.naturalis.nl,specimen.s3.naturalis.ppdb.naturalis.nl,reports.s3.naturalis.ppdb.naturalis.nl}"
+
+  
   traefik:
     # Traefik verzorgt het ssl certificate en de communicatie via de load balancer
     image: traefik:1.7.4
@@ -101,6 +107,8 @@ services:
       - ./traefik.log:/var/log/traefik
       - "/etc/letsencrypt:/etc/letsencrypt"
       - ${TRAEFIK_TOML_FILE:-./traefik.dev.toml}:/traefik.toml
+
+  
   elasticsearch:
     # Dit is de elastic logging server
     image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.4.2
@@ -111,6 +119,8 @@ services:
       - "${ELASTICSEARCH_BACKUP:-./elasticsearch-backup}:/backup"
     ports:
       - "127.0.0.1:9200:9200"
+
+
   grafana:
     # Dit is het grafana dashboard dat de logging van het hele proces kan weergeven
     image: grafana/grafana
@@ -136,6 +146,8 @@ services:
       options:
         max-size: '10m'
         max-file: '5'
+
+
   postgres:
     # Dit is de postgres database die wordt gebruikt door de percolator instance
     image: postgres:10.5
@@ -158,12 +170,14 @@ services:
         max-file: '5'
     networks:
       - default
+
+
   validator:
     # Dit is de validator instance van Maarten
     image: naturalis/nba-validator:v1.0
     volumes:
       - "${NBA_JSON_SCHEMAS:-./nba_json_schemas}:/schemas"
-      - "${NBA_JSON_CONFIG:-./nba_json_schemas_config}:/config"
+      - "${NBA_VALIDATOR_CONFIG:-./data/nba_validator_config}:/config"
       - "${VALIDATOR_DATA:-./data/validator}:/data"
       - "${SHARED_DATA:-./data/shared-data}:/shared-data"
     environment:
@@ -184,6 +198,8 @@ services:
     networks:
       - web
       - default
+
+
   percolator:
     # Dit is de percolator instance van Joep
     image: naturalis/percolator:latest
@@ -207,9 +223,10 @@ services:
         max-file: '5'
     networks:
       - default
-  nba-loader:
-    # Dit is de infuser/importer van Tom
-    image: naturalis/nba-loader:latest
+
+
+  infuser:
+    image: registry.gitlab.com/naturalis/sd/nba_infuser
     volumes:
       - /opt/ppdb/loader-config:/home/app/config
       - /data/shared-data/infuser:/data
@@ -228,6 +245,7 @@ services:
       SLACK_ENABLED: ${SLACK_ENABLED:-0}
     networks:
       - default
+
 ########
 # Onderstaand is de dev omgeving gebruikt om tijdens een vroeg moment te experimenteren
 #
@@ -282,3 +300,4 @@ services:
 networks:
   web:
     external: true
+

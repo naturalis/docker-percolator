@@ -200,8 +200,8 @@ services:
       - default
 
 
+  # Dit is de percolator instance van Joep
   percolator:
-    # Dit is de percolator instance van Joep
     image: naturalis/nba-percolator:latest
     volumes:
       - "${SHARED_DATA:-./shared-data}:/shared-data"

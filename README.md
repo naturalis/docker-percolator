@@ -5,14 +5,14 @@ The setup was created by former Naturalis employee Atze and Joep Vermaat and
 consists of:
 
  - validator (php environment for the validation)
- - infuser (java environment for loader)
  - percolator (python environment for the percolator script)
+ - infuser (java environment for loader)
 
- The supporting infra structure needed consitst of:
+The supporting infra-structure needed consists of:
 
- - minio instance for xeno canto data
- - minio instance for waarneming data
- - minio instance for naturalis data
+ - minio instance (for xeno canto data)
+ - minio instance (for waarneming data)
+ - minio instance (for naturalis data)
  - traefik
  - elasticsearch (for logging)
  - grafana (for visualising the logging output)

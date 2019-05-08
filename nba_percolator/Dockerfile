@@ -20,4 +20,4 @@ RUN apk update \
 ADD . /usr/src
 WORKDIR /usr/src
 
-CMD ["ppdb_nba"]
+CMD ["percolator"]

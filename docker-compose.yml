@@ -1,10 +1,19 @@
 ---
-version: '2.1'
+version: '3.4'
+
+x-logging:
+  &default-logging
+  options:
+    max-size: '10m'
+    max-file: '5'
+  driver: json-file
+
 services:
   xc-minio:
     # Dit is de minio image voor het aanleveren van xeno-canto bronnen
     image: minio/minio
     restart: unless-stopped
+    logging: *default-logging
     command: server /export
     environment:
       # minimal 5 chars
@@ -17,11 +26,6 @@ services:
     networks:
       - default
       - web
-    logging:
-      driver: "json-file"
-      options:
-        max-size: '10m'
-        max-file: '5'
     labels:
       - "traefik.backend=xc-minio"
       - "traefik.enable=true"
@@ -33,6 +37,7 @@ services:
     # Dit is de minio image voor het aanleveren van waarneming bronnen
     image: minio/minio
     restart: unless-stopped
+    logging: *default-logging
     command: server /export
     environment:
       # minimal 5 chars
@@ -45,22 +50,18 @@ services:
     networks:
       - default
       - web
-    logging:
-      driver: "json-file"
-      options:
-        max-size: '10m'
-        max-file: '5'
     labels:
       - "traefik.backend=waarneming-minio"
       - "traefik.enable=true"
       - "traefik.port=9000"
       - "${MINIO_WRNNL_URL:-traefik.frontend.rule=Host:s3.waarneming.ppdb.naturalis.nl,multimedia.s3.waarneming.ppdb.naturalis.nl,specimen.s3.waarneming.ppdb.naturalis.nl,reports.s3.waarneming.ppdb.naturalis.nl}"
 
-  
+
   naturalis-minio:
     # Dit is de minio image voor het aanleveren van naturalis bronnen
     image: minio/minio
     restart: unless-stopped
+    logging: *default-logging
     command: server /export
     environment:
       # minimal 5 chars
@@ -73,23 +74,19 @@ services:
     networks:
       - default
       - web
-    logging:
-      driver: "json-file"
-      options:
-        max-size: '10m'
-        max-file: '5'
     labels:
       - "traefik.backend=naturalis-minio"
       - "traefik.enable=true"
       - "traefik.port=9000"
       - "${MINIO_NATURALIS_URL:-traefik.frontend.rule=Host:s3.naturalis.ppdb.naturalis.nl,multimedia.s3.naturalis.ppdb.naturalis.nl,specimen.s3.naturalis.ppdb.naturalis.nl,reports.s3.naturalis.ppdb.naturalis.nl}"
 
-  
+
   traefik:
     # Traefik verzorgt het ssl certificate en de communicatie via de load balancer
     image: traefik:1.7.4
     container_name: traefik
     restart: unless-stopped
+    logging: *default-logging
     ports:
       - 80:80
       - 443:443
@@ -97,11 +94,6 @@ services:
     networks:
       - default
       - web
-    logging:
-      driver: "json-file"
-      options:
-        max-size: '10m'
-        max-file: '5'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik.log:/var/log/traefik
@@ -112,6 +104,8 @@ services:
   elasticsearch:
     # Dit is de elastic logging server
     image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.4.2
+    restart: unless-stopped
+    logging: *default-logging
     environment:
       - "discovery.type=single-node"
     volumes:
@@ -141,11 +135,8 @@ services:
       - GF_SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
       - GF_SMTP_USER=${SMTP_USER:-noreply@naturalis.nl}
       - GF_SMTP_PASSWORD=${SMTP_PASSWORD}
-    logging:
-      driver: "json-file"
-      options:
-        max-size: '10m'
-        max-file: '5'
+    restart: unless-stopped
+    logging: *default-logging
 
 
   postgres:
@@ -163,11 +154,8 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - REPLICATION_USER=${REPLICATION_USER}
       - REPLICATION_PASSWORD=${REPLICATION_PASSWORD}
-    logging:
-      driver: "json-file"
-      options:
-        max-size: '10m'
-        max-file: '5'
+    restart: unless-stopped
+    logging: *default-logging
     networks:
       - default
 
@@ -190,11 +178,7 @@ services:
       tmp_path: /data/temporary/
       SLACK_WEBHOOK: ${SLACK_WEBHOOK}
       SLACK_ENABLED: ${SLACK_ENABLED:-0}
-    logging:
-      driver: "json-file"
-      options:
-        max-size: '10m'
-        max-file: '5'
+    logging: *default-logging
     networks:
       - web
       - default
@@ -216,11 +200,7 @@ services:
       SLACK_WEBHOOK: ${SLACK_WEBHOOK}
       SLACK_ENABLED: ${SLACK_ENABLED:-0}
       LOGGING_HOST: ${LOGGING_SCHEME}://${LOGGING_HOST:-elasticsearch}:${LOGGING_PORT:-9200}/
-    logging:
-      driver: "json-file"
-      options:
-        max-size: '10m'
-        max-file: '5'
+    logging: *default-logging
     networks:
       - default
 
@@ -243,6 +223,7 @@ services:
       INFUSER_ARCHIVEPATH: ${INFUSER_ARCHIVEPATH}
       SLACK_WEBHOOK: ${SLACK_WEBHOOK}
       SLACK_ENABLED: ${SLACK_ENABLED:-0}
+    logging: *default-logging
     networks:
       - default
 

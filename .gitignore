@@ -3,3 +3,4 @@ traefik.toml
 traefik.dev.toml
 traefik.log
 *.swp
+nohup.out

@@ -164,8 +164,8 @@ services:
     # Dit is de validator instance van Maarten
     image: naturalis/nba-validator:v1.0
     volumes:
-      - "${NBA_JSON_SCHEMAS:-./nba_json_schemas}:/schemas"
-      - "${NBA_VALIDATOR_CONFIG:-./data/nba_validator_config}:/config"
+    #  - "${NBA_JSON_SCHEMAS:-./nba_json_schemas}:/schemas"
+    #  - "${NBA_VALIDATOR_CONFIG:-./data/nba_validator_config}:/config"
       - "${VALIDATOR_DATA:-./data/validator}:/data"
       - "${SHARED_DATA:-./data/shared-data}:/shared-data"
     environment:
